@@ -341,7 +341,7 @@ void CModelExpansion::simpleCall(const CCompartment * source, std::vector< std::
   mpModel->compileIfNecessary(NULL);
 }
 
-void CModelExpansion::createLinearArray(const SetOfModelElements & source, size_t n, const std::set< std::string  > & setOfMetabolites)
+void CModelExpansion::createLinearArray(const SetOfModelElements & source, size_t n, const std::set< std::string  > & setOfMetabolites, std::vector< std::string > vecCompartmentLabel)
 {
   if (!mpModel) return;
 
@@ -378,7 +378,12 @@ void CModelExpansion::createLinearArray(const SetOfModelElements & source, size_
   for (i = 0; i < n; ++i)
     {
       std::ostringstream indexstr;
-      indexstr << "[" << i << "]";
+
+      if (vecCompartmentLabel.empty())
+	indexstr << "[" << i << "]";
+      else
+	indexstr << vecCompartmentLabel[i];
+
       duplicate(source, indexstr.str(), maps[i]);
 
       //Diffusion

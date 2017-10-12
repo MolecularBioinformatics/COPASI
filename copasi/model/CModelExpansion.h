@@ -117,7 +117,7 @@ public:
    * creates n copies of the objects in souce. Diffusion reactions are created for each of
    * the metabs in listOfMetabolites, so that a linear chain is formed.
    */
-  void createLinearArray(const SetOfModelElements & source, size_t n, const std::set< std::string  > & setOfMetabolites);
+  void createLinearArray(const SetOfModelElements & source, size_t n, const std::set< std::string  > & setOfMetabolites, const std::vector< std::string > vecCompartmentLabel = std::vector< std::string >() );
 
   /**
    * creates nx*ny copies of the objects in souce. Diffusion reactions are created for each of
