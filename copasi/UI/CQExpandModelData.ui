@@ -117,9 +117,26 @@
     </layout>
    </item>
    <item>
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Write label for each new compartment in a new line.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="mpTextEditCompartmentLabels">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
     </widget>
    </item>
@@ -202,7 +219,4 @@
    </hints>
   </connection>
  </connections>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>

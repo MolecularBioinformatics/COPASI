@@ -150,8 +150,14 @@ void CQExpandModelData::slotOK()
   multx = mpLineEditSizeX->text().toInt();
   multy = mpLineEditSizeY->text().toInt();
 
+  std::vector< std::string > vecCompartmentLabel;
+  QString mpTextContentCompartmentLabels = mpTextEditCompartmentLabels->toPlainText();
+  QStringList listCompartmentLabels = mpTextContentCompartmentLabels.split("\n");
+  for (int i = 0; i < listCompartmentLabels.size(); ++i)
+    vecCompartmentLabel.push_back(listCompartmentLabels[i].toUtf8().constData());
+
   if (mpRadioButtonLin->isChecked())
-    me.createLinearArray(modelelements, multx, metabkeys);
+    me.createLinearArray(modelelements, multx, metabkeys, vecCompartmentLabel);
   else if (mpRadioButtonRec->isChecked())
     me.createRectangularArray(modelelements, multx, multy, metabkeys);
 
