@@ -15,6 +15,7 @@
 
 #include <QtCore/QString>
 #include <QIntValidator>
+#include <QMessageBox> 
 #include "CQExpandModelData.h"
 #include "listviews.h"
 
@@ -151,10 +152,30 @@ void CQExpandModelData::slotOK()
   multy = mpLineEditSizeY->text().toInt();
 
   std::vector< std::string > vecCompartmentLabel;
-  QString mpTextContentCompartmentLabels = mpTextEditCompartmentLabels->toPlainText();
-  QStringList listCompartmentLabels = mpTextContentCompartmentLabels.split("\n");
-  for (int i = 0; i < listCompartmentLabels.size(); ++i)
-    vecCompartmentLabel.push_back(listCompartmentLabels[i].toUtf8().constData());
+  if (mpRadioButtonMan->isChecked())
+  {
+    QString mpTextContentCompartmentLabels = mpTextEditCompartmentLabels->toPlainText();
+    QStringList listCompartmentLabels = mpTextContentCompartmentLabels.split("\n");
+    for (int i = 0; i < listCompartmentLabels.size(); ++i)
+      vecCompartmentLabel.push_back(listCompartmentLabels[i].toUtf8().constData());
+
+    // Check if correct number of arguments was given and display message box if not
+    if (vecCompartmentLabel.size() != multx)
+    {
+      QMessageBox *msgBox = new QMessageBox;
+      msgBox->setParent(0);
+      msgBox->setWindowTitle("Incorrect number of compartment labels");
+      msgBox->setText("Please check that the number of labels equals the number of new comparments. Also note that each label should be on a single line without empty lines.");
+      msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
+      msgBox->raise();
+      reject();
+    }
+  }
+  else
+  {
+    for (int i = 0; i < multx; i++)
+      vecCompartmentLabel.push_back(std::to_string(i));
+  }
 
   if (mpRadioButtonLin->isChecked())
     me.createLinearArray(modelelements, multx, metabkeys, vecCompartmentLabel);
@@ -177,10 +198,19 @@ void CQExpandModelData::slotMode()
     {
       mpLabelCross->setEnabled(false);
       mpLineEditSizeY->setEnabled(false);
+      mpRadioButtonAuto->setEnabled(true);
+      mpRadioButtonMan->setEnabled(true);
+      /* if (mpRadioButtonMan->isChecked()) */
+	mpTextEditCompartmentLabels->setEnabled(true);
+      /* else */
+	/* mpTextEditCompartmentLabels->setEnabled(false); */
     }
   else if (mpRadioButtonRec->isChecked())
     {
       mpLabelCross->setEnabled(true);
       mpLineEditSizeY->setEnabled(true);
+      mpRadioButtonAuto->setEnabled(false);
+      mpRadioButtonMan->setEnabled(false);
+      mpTextEditCompartmentLabels->setEnabled(false);
     }
 }
