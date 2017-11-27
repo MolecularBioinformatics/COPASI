@@ -69,6 +69,7 @@ void CQParameterSetsWidget::slotBtnNewClicked()
 {
   mpParameterSetsDM->insertRow(mpParameterSetsDM->rowCount(), QModelIndex());
   updateDeleteBtns();
+  mpTblParameterSets->resizeColumnsToContents();
 }
 
 void CQParameterSetsWidget::slotBtnDeleteClicked()
@@ -140,7 +141,11 @@ bool CQParameterSetsWidget::enterProtected()
 {
   if (mpObject == NULL)
     {
-      return false;
+      if (mpDataModel != NULL)
+        mpObject = mpDataModel->getModel();
+
+      if (mpObject == NULL)
+        return false;
     }
 
   if (mpTblParameterSets->selectionModel() != NULL)
@@ -159,7 +164,6 @@ bool CQParameterSetsWidget::enterProtected()
   updateDeleteBtns();
   mpTblParameterSets->resizeColumnsToContents();
   setFramework(mFramework);
-  mpBtnNew->hide();
   return true;
 }
 

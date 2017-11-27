@@ -92,6 +92,18 @@ CEvaluationNodeObject::CEvaluationNodeObject(const C_FLOAT64 * pValue):
   mData = pointerToString(pValue);
 }
 
+CEvaluationNodeObject::CEvaluationNodeObject(const bool * pValue):
+  CEvaluationNode(MainType::OBJECT, SubType::POINTER, "pointer"),
+  mpObject(NULL),
+  mRegisteredObjectCN("")
+{
+  mPrecedence = PRECEDENCE_NUMBER;
+  mValueType = ValueType::Boolean;
+
+  mpValue = (const C_FLOAT64 *) pValue;
+  mData = pointerToString(pValue);
+}
+
 CEvaluationNodeObject::CEvaluationNodeObject(const CEvaluationNodeObject & src):
   CEvaluationNode(src),
   mpObject(src.mpObject),
@@ -236,16 +248,13 @@ CIssue CEvaluationNodeObject::compile(const CEvaluationTree * pTree)
 
 const CEvaluationNode::Data & CEvaluationNodeObject::getData() const
 {
-  static std::string data;
-
   switch (mSubType)
     {
       case SubType::CN:
-        return data = "<" + mRegisteredObjectCN + ">";
+        const_cast< CEvaluationNodeObject * >(this)->mData = "<" + mRegisteredObjectCN + ">";
         break;
 
       case SubType::POINTER:
-        return mData;
         break;
     }
 
@@ -410,9 +419,7 @@ ASTNode* CEvaluationNodeObject::toAST(const CDataModel* pDataModel) const
                 {
                   CCopasiMessage(CCopasiMessage::WARNING, MCSBML + 1);
                 }
-
             }
-
         }
       else
         {
