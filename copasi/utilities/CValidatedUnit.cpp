@@ -1,3 +1,8 @@
+// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Properties, Inc., University of Heidelberg, and University of
+// of Connecticut School of Medicine.
+// All rights reserved.
+
 // Copyright (C) 2016 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and The University
 // of Manchester.
@@ -71,4 +76,20 @@ void CValidatedUnit::setConflict(const bool & conflict)
 const bool & CValidatedUnit::conflict() const
 {
   return mConflict;
+}
+
+bool CValidatedUnit::operator<(const CValidatedUnit & rightSide) const
+{
+  if (mConflict != rightSide.mConflict)
+    return mConflict < rightSide.mConflict;
+
+  return CUnit::operator <(rightSide);
+}
+
+std::ostream &operator<<(std::ostream &os, const CValidatedUnit & o)
+{
+  os << * static_cast< const CUnit * >(&o) << std::endl;
+  os << "Conflict:   " << o.mConflict;
+
+  return os;
 }

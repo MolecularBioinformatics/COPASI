@@ -143,6 +143,32 @@ public:
   const CVector< C_FLOAT64 > & getResiduals() const;
 
   /**
+   * calculate the FIM from the parameter estimation jacobian
+   */
+  void calcFIM(const CMatrix< C_FLOAT64 >& jacobian, CMatrix< C_FLOAT64 >& fim);
+
+  /**
+   * calculate the FIM from only a part of the parameter estimation jacobian
+   * only columns from a to b-1 are used or excluded, depending on the exclude flag
+   */
+  void calcPartialFIM(const CMatrix< C_FLOAT64 >& jacobian, CMatrix< C_FLOAT64 >& fim, size_t a, size_t b, bool exclude=false);
+  
+  /**
+   * calculate the Eigenvalues and -vectors for a matrix. 
+   * This is intended for the FIM, and we assume only real (and positive) eigenvalues
+   */
+  void calcEigen(const CMatrix< C_FLOAT64 >& fim, CMatrix< C_FLOAT64 >& eigenvalues, CMatrix< C_FLOAT64 >& eigenvectors);
+  
+  /**
+   * calculate the inverse of a matrix and normalize it.
+   * This is used for calculating the correlation Matric from the FIM, 
+   * and therefore we can assume a symmetric positive definite matrix
+   * The SD of the parameters is also calculated from the diagonal of the covariance
+   */
+  bool calcCov(const CMatrix< C_FLOAT64 >& fim, CMatrix< C_FLOAT64 >& corr, CVector< C_FLOAT64 >& sd);
+
+  
+  /**
    * Calculate the statistics for the problem
    * @param const C_FLOAT64 & factor (Default: 1.0e-003)
    * @param const C_FLOAT64 & resolution (Default: 1.0e-009)
@@ -168,6 +194,17 @@ public:
    */
   const CVector< C_FLOAT64 > & getVariableStdDeviations() const;
 
+  /**
+   * Retrieve the Jacobian of the parameter estimation.
+   */
+  CDataArray & getParameterEstimationJacobian() const;
+
+  /**
+   * Retrieve the scaled Jacobian of the parameter estimation.
+   * It is scaled by parameter values
+   */
+  CDataArray & getScaledParameterEstimationJacobian() const;
+  
   /**
    * Retrieve the Fisher Information Matrix of the solution variables.
    * @return CArrayAnnotation & fisherInformationMatrix
@@ -471,6 +508,23 @@ private:
    */
   CVector< C_FLOAT64 > mParameterSD;
 
+  /**
+   * the Jacobian of tha parameter estimation, 
+   *i.e. the derivatives of the residuals with respect to the parameters
+   */
+  CMatrix< C_FLOAT64 > mDeltaResidualDeltaParameter;
+  CMatrixInterface< CMatrix< C_FLOAT64 > > * mpDeltaResidualDeltaParameterInterface;
+  CDataArray * mpDeltaResidualDeltaParameterMatrix;
+
+  /**
+   * the scaled Jacobian of tha parameter estimation,
+   * i.e. the derivatives of the residuals with respect to the parameters,
+   * scaled by parameter value
+   */
+  CMatrix< C_FLOAT64 > mDeltaResidualDeltaParameterScaled;
+  CMatrixInterface< CMatrix< C_FLOAT64 > > * mpDeltaResidualDeltaParameterScaledInterface;
+  CDataArray * mpDeltaResidualDeltaParameterScaledMatrix;
+  
   /**
    * The Fisher information or parameter correlation matrix
    */

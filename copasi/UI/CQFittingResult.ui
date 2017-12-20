@@ -23,7 +23,7 @@
      <item>
       <widget class="QLabel" name="mpLblResult">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -67,16 +67,19 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="CQFittingResultTab1" name="mpMain">
       <attribute name="title">
        <string>Main</string>
       </attribute>
      </widget>
-     <widget class="QTableWidget" name="mpParameters">
+     <widget class="QTableView" name="mpParameters">
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
       </property>
       <property name="sortingEnabled">
        <bool>true</bool>
@@ -84,48 +87,8 @@
       <attribute name="title">
        <string>Parameters</string>
       </attribute>
-      <column>
-       <property name="text">
-        <string>Parameter</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Lower Bound</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Start Value</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Value</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Upper Bound</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Std. Deviation</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Coeff. of Variation [%]</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Gradient</string>
-       </property>
-      </column>
      </widget>
-     <widget class="QTableWidget" name="mpExperiments">
+     <widget class="QTreeWidget" name="mpExperiments">
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
       </property>
@@ -224,7 +187,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>589</width>
+         <width>593</width>
          <height>2400</height>
         </rect>
        </property>
@@ -235,7 +198,16 @@
         </size>
        </property>
        <layout class="QVBoxLayout">
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -351,7 +323,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QTableWidget" name="mpCrossValidations">
+     <widget class="QTreeWidget" name="mpCrossValidations">
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
       </property>
@@ -428,7 +400,16 @@
        <string>Log</string>
       </attribute>
       <layout class="QGridLayout">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <item row="0" column="0">
@@ -477,8 +458,8 @@
    <slot>slotSave()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
+     <x>571</x>
+     <y>109</y>
     </hint>
     <hint type="destinationlabel">
      <x>20</x>
@@ -493,8 +474,8 @@
    <slot>slotUpdateModel()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
+     <x>490</x>
+     <y>109</y>
     </hint>
     <hint type="destinationlabel">
      <x>20</x>
@@ -509,8 +490,8 @@
    <slot>loadTab(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>270</x>
-     <y>137</y>
+     <x>279</x>
+     <y>336</y>
     </hint>
     <hint type="destinationlabel">
      <x>270</x>

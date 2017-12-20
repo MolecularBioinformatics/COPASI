@@ -28,11 +28,7 @@
 #include "utilities/CDirEntry.h"
 #include "MIRIAM/CConstants.h"
 
-#ifdef WITH_NEW_PARSER
-# include "xml/parser/CXMLParser.h"
-#else
-# include "xml/CCopasiXMLParser.h"
-#endif
+#include "xml/parser/CXMLParser.h"
 
 CRecentFiles::CRecentFiles(const std::string & name,
                            const CDataContainer * pParent):
@@ -125,6 +121,7 @@ CConfigurationFile::CConfigurationFile(const std::string & name,
   mpUseAdvancedSliders(NULL),
   mpUseAdvancedEditing(NULL),
   mpNormalizePerExperiment(NULL),
+  mpEnableAdditionalOptimizationParameters(NULL),
   mpDisplayPopulations(NULL),
   mpWorkingDirectory(NULL),
   mpProxyServer(NULL),
@@ -152,6 +149,7 @@ CConfigurationFile::CConfigurationFile(const CConfigurationFile & src,
   mpUseAdvancedSliders(NULL),
   mpUseAdvancedEditing(NULL),
   mpNormalizePerExperiment(NULL),
+  mpEnableAdditionalOptimizationParameters(NULL),
   mpDisplayPopulations(NULL),
   mpWorkingDirectory(NULL),
   mpProxyServer(NULL),
@@ -204,6 +202,7 @@ void CConfigurationFile::initializeParameter()
   mpUseAdvancedSliders = assertParameter("Use Advanced Sliders", CCopasiParameter::BOOL, true);
   mpUseAdvancedEditing = assertParameter("Use Advanced Editing", CCopasiParameter::BOOL, false);
   mpNormalizePerExperiment = assertParameter("Normalize Weights per Experiment", CCopasiParameter::BOOL, true);
+  mpEnableAdditionalOptimizationParameters = assertParameter("Enable additional optimization parameters", CCopasiParameter::BOOL, false);
   mpDisplayPopulations = assertParameter("Display Populations during Optimization", CCopasiParameter::BOOL, false);
 
   mpApplicationFont = assertParameter("Application Font", CCopasiParameter::STRING, std::string(""));
@@ -404,6 +403,16 @@ void CConfigurationFile::setNormalizePerExperiment(bool flag)
   *mpNormalizePerExperiment = flag;
 }
 
+bool CConfigurationFile::enableAdditionalOptimizationParameters() const
+{
+  return *mpEnableAdditionalOptimizationParameters;
+}
+
+void CConfigurationFile::setEnableAdditionalOptimizationParameters(bool enableAdditionalOptimizationParameters)
+{
+  *mpEnableAdditionalOptimizationParameters = enableAdditionalOptimizationParameters;
+}
+
 bool CConfigurationFile::displayPopulations() const
 {
   return *mpDisplayPopulations;
@@ -530,12 +539,7 @@ bool CConfigurationFile::CXML::load(std::istream & is,
   bool done = false;
 
   CVersion Version;
-
-#ifdef WITH_NEW_PARSER
   CXMLParser Parser(Version);
-#else
-  CCopasiXMLParser Parser(Version);
-#endif
 
 #define BUFFER_SIZE 0xfffe
   char * pBuffer = new char[BUFFER_SIZE + 1];

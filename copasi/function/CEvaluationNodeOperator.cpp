@@ -1744,9 +1744,10 @@ CValidatedUnit CEvaluationNodeOperator::getUnit(const CMathContainer & container
           {
             // Test if each component's exponent
             // is an integer. (don't want fractional exponents) by . . .
-            if (!(remainder((*it).getExponent(), 1.0) <= 100.0 * std::numeric_limits< C_FLOAT64 >::epsilon()))
+
+            if (fabs(remainder((*it).getExponent(), 1.0)) > 100.0 * std::numeric_limits< C_FLOAT64 >::epsilon())
               {
-                Unit.setConflict(true);
+                Unit = CValidatedUnit(CUnit(), true);
 
                 break;
               }
@@ -1789,8 +1790,7 @@ CValidatedUnit CEvaluationNodeOperator::setUnit(const CMathContainer & container
     const std::map < CEvaluationNode * , CValidatedUnit > & currentUnits,
     std::map < CEvaluationNode * , CValidatedUnit > & targetUnits) const
 {
-  CValidatedUnit Result = CValidatedUnit::merge(currentUnits.find(const_cast< CEvaluationNodeOperator * >(this))->second,
-                          targetUnits[const_cast< CEvaluationNodeOperator * >(this)]);
+  CValidatedUnit Result(CEvaluationNode::setUnit(container, currentUnits, targetUnits));
 
   switch (mSubType)
     {
@@ -1827,15 +1827,63 @@ CValidatedUnit CEvaluationNodeOperator::setUnit(const CMathContainer & container
       break;
 
       case SubType::MULTIPLY:
-        targetUnits[mpLeftNode] = Result * currentUnits.find(mpRightNode)->second.exponentiate(-1.0);
-        targetUnits[mpRightNode] = Result * currentUnits.find(mpLeftNode)->second.exponentiate(-1.0);
-        break;
+      {
+        std::map < CEvaluationNode * , CValidatedUnit >::const_iterator itLeft = currentUnits.find(mpLeftNode);
+        std::map < CEvaluationNode * , CValidatedUnit >::const_iterator itRight = currentUnits.find(mpRightNode);
+
+        if (itLeft->second.isUndefined() ||
+            mpLeftNode->getChild() != NULL)
+          {
+            targetUnits[mpLeftNode] = Result * itRight->second.exponentiate(-1.0);
+          }
+        else
+          {
+            targetUnits[mpLeftNode] = itLeft->second;
+            targetUnits[mpLeftNode].setConflict(Result.conflict());
+          }
+
+        if (itRight->second.isUndefined()  ||
+            mpRightNode->getChild() != NULL)
+          {
+            targetUnits[mpRightNode] = Result * itLeft->second.exponentiate(-1.0);
+          }
+        else
+          {
+            targetUnits[mpRightNode] = itRight->second;
+            targetUnits[mpRightNode].setConflict(Result.conflict());
+          }
+      }
+      break;
 
       case SubType::DIVIDE:
       case SubType::MODULUS:
-        targetUnits[mpLeftNode] = Result * currentUnits.find(mpRightNode)->second;
-        targetUnits[mpRightNode] = Result.exponentiate(-1.0) * currentUnits.find(mpLeftNode)->second;
-        break;
+      {
+        std::map < CEvaluationNode * , CValidatedUnit >::const_iterator itLeft = currentUnits.find(mpLeftNode);
+        std::map < CEvaluationNode * , CValidatedUnit >::const_iterator itRight = currentUnits.find(mpRightNode);
+
+        if (itLeft->second.isUndefined() ||
+            mpLeftNode->getChild() != NULL)
+          {
+            targetUnits[mpLeftNode] = Result * itRight->second;
+          }
+        else
+          {
+            targetUnits[mpLeftNode] = itLeft->second;
+            targetUnits[mpLeftNode].setConflict(Result.conflict());
+          }
+
+        if (itRight->second.isUndefined() ||
+            mpRightNode->getChild() != NULL)
+          {
+            targetUnits[mpRightNode] = Result.exponentiate(-1.0) * itLeft->second;
+          }
+        else
+          {
+            targetUnits[mpRightNode] = itRight->second;
+            targetUnits[mpRightNode].setConflict(Result.conflict());
+          }
+      }
+      break;
 
       case SubType::PLUS:
       case SubType::MINUS:
