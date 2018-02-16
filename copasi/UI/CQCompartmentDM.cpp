@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -128,7 +128,7 @@ QVariant CQCompartmentDM::data(const QModelIndex &index, int role) const
                 return QVariant(QString(FROM_UTF8(CModelEntity::StatusName[mItemToType[0]])));
 
               case COL_IVOLUME:
-                return QVariant(QString::number(1.0, 'g', 10));
+                return QVariant(convertToQString(1.0));
 
               default:
                 return QVariant(QString(""));
@@ -156,7 +156,7 @@ QVariant CQCompartmentDM::data(const QModelIndex &index, int role) const
               case COL_IVOLUME:
 
                 if (role == Qt::EditRole)
-                  return QVariant(QString::number(Compartment.getInitialValue(), 'g', 10));
+                  return QVariant(convertToQString(Compartment.getInitialValue()));
                 else
                   return QVariant(Compartment.getInitialValue());
 
@@ -397,7 +397,7 @@ bool CQCompartmentDM::compartmentDataChange(const QModelIndex& index,
   if (pUndoData != NULL)
     {
       if (mpCompartments->getIndex(pUndoData->getName()) != C_INVALID_INDEX)
-      pCompartment = &mpCompartments->operator[](pUndoData->getName());
+        pCompartment = &mpCompartments->operator[](pUndoData->getName());
     }
 
   if (pCompartment == NULL)

@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -204,11 +204,14 @@ void CMathContainer::relocateObject(const CMathObject *& pObject, const std::vec
   relocateObject(const_cast< CMathObject *& >(pObject), relocations);
 }
 
+static C_FLOAT64 InvalidValue;
+
 CMathContainer::CMathContainer():
   CDataContainer("Math Container", NULL, "CMathContainer"),
   mpModel(NULL),
   mpAvogadro(NULL),
   mpQuantity2NumberFactor(NULL),
+  mRandom("Random", this, InvalidValue),
   mpProcessQueue(new CMathEventQueue(*this)),
   mpRandomGenerator(CRandom::createGenerator()),
   mValues(),
@@ -303,6 +306,7 @@ CMathContainer::CMathContainer(CModel & model):
   mpModel(&model),
   mpAvogadro(NULL),
   mpQuantity2NumberFactor(NULL),
+  mRandom("Random", this, InvalidValue),
   mpProcessQueue(new CMathEventQueue(*this)),
   mpRandomGenerator(CRandom::createGenerator()),
   mValues(),
@@ -408,6 +412,7 @@ CMathContainer::CMathContainer(const CMathContainer & src):
   CDataContainer(src, NULL),
   mpModel(src.mpModel),
   mpAvogadro(src.mpAvogadro),
+  mRandom(src.mRandom, this),
   mpQuantity2NumberFactor(src.mpQuantity2NumberFactor),
   mpProcessQueue(new CMathEventQueue(*this)),
   mpRandomGenerator(CRandom::createGenerator()),
@@ -2229,6 +2234,8 @@ CEvaluationNode * CMathContainer::createNodeFromObject(const CObjectInterface * 
       // Check whether we have a data object
       if (pObject == pObject->getDataObject())
         {
+          // This may insert data objects which are later mapped to math objects.
+          // We therefore need to sanitize it later.
           mDataValue2DataObject[(C_FLOAT64 *) pObject->getValuePointer()]
             = static_cast< CDataObject * >(const_cast< CObjectInterface * >(pObject));
         }
@@ -2299,6 +2306,7 @@ void CMathContainer::createDependencyGraphs()
 
 void CMathContainer::createUpdateSequences()
 {
+  sanitizeDataValue2DataObject();
   createSynchronizeInitialValuesSequence();
   createApplyInitialValuesSequence();
   createUpdateSimulationValuesSequence();
@@ -2311,6 +2319,22 @@ void CMathContainer::createUpdateSequences()
     {
       pEvent->createUpdateSequences();
     }
+}
+
+void CMathContainer::sanitizeDataValue2DataObject()
+{
+  std::map< C_FLOAT64 *, CDataObject * > DataValue2DataObject = mDataValue2DataObject;
+
+  std::map< C_FLOAT64 *, CDataObject * >::const_iterator itDataObject = DataValue2DataObject.begin();
+  std::map< C_FLOAT64 *, CDataObject * >::const_iterator endDataObject = DataValue2DataObject.end();
+
+  mDataValue2DataObject.clear();
+
+  for (; itDataObject != endDataObject; ++itDataObject)
+    if (getMathObject(itDataObject->second) == NULL)
+      {
+        mDataValue2DataObject.insert(*itDataObject);
+      }
 }
 
 void CMathContainer::createSynchronizeInitialValuesSequence()
@@ -3683,6 +3707,16 @@ bool CMathContainer::hasDependencies(const CDataObject * pObject)
   return Dependencies.size() > 0;
 }
  */
+void CMathContainer::map()
+{
+  CMathObject * itObject = mObjects.begin();
+  CMathObject * endObject = mObjects.end();
+
+  for (; itObject != endObject; ++itObject)
+    {
+      map(itObject->getDataObject(), itObject);
+    }
+}
 
 void CMathContainer::map(const CDataObject * pDataObject, CMathObject * pMathObject)
 {
@@ -3855,6 +3889,9 @@ CMath::Entity< CMathObject > CMathContainer::addAnalysisObject(const CMath::Enti
       mInitialDependencies.addObject(pObject);
     }
 
+  // We resize cleared mDataObject2MathObject and mDataValue2MathObject we must create a new map
+  map();
+
   createUpdateSequences();
 
   return Entity;
@@ -3918,6 +3955,9 @@ bool CMathContainer::removeAnalysisObject(CMath::Entity< CMathObject > & mathObj
   // Resize
   resize(Size);
   finishResize();
+
+  // We resize cleared mDataObject2MathObject and mDataValue2MathObject we must create a new map
+  map();
 
   // Create Update sequences
   createUpdateSequences();
@@ -4143,6 +4183,9 @@ CMathEvent * CMathContainer::addAnalysisEvent(const CEvent & dataEvent)
           pFixedEnd--;
         }
     }
+
+  // We resize cleared mDataObject2MathObject and mDataValue2MathObject we must create a new map
+  map();
 
   analyzeRoots();
   createUpdateSequences();
@@ -4383,6 +4426,9 @@ bool CMathContainer::removeAnalysisEvent(CMathEvent *& pMathEvent)
       relocate(Size, Relocations);
     }
 
+  // We resize cleared mDataObject2MathObject and mDataValue2MathObject we must create a new map
+  map();
+
   analyzeRoots();
   createUpdateSequences();
 
@@ -4392,6 +4438,11 @@ bool CMathContainer::removeAnalysisEvent(CMathEvent *& pMathEvent)
 CRandom & CMathContainer::getRandomGenerator() const
 {
   return * mpRandomGenerator;
+}
+
+const CDataObject * CMathContainer::getRandomObject() const
+{
+  return &mRandom;
 }
 
 void CMathContainer::createDiscontinuityEvents()
@@ -4566,14 +4617,49 @@ void CMathContainer::createDelays()
   std::vector< CMath::sRelocate > Relocations = resize(Size);
 
   // Update the mappings of the delays
-  for (itDelayLag = DelayData.begin(); itDelayLag != endDelayLag; ++itDelayLag)
+  // We need to update all keys and values
+  CMath::DelayData MappedDelayData;
+  CMath::DelayData::iterator currentDelayData = MappedDelayData.end();
+
+  for (itDelayLag = DelayData.begin(), LagKey = ""; itDelayLag != endDelayLag; ++itDelayLag)
     {
+      if (itDelayLag->first != LagKey)
+        {
+          LagKey = itDelayLag->first;
+
+          CMathExpression LagExpression("LagExpression", *this);
+          LagExpression.setInfix(itDelayLag->first);
+          LagExpression.relocate(this, Relocations);
+          currentDelayData = MappedDelayData.insert(std::make_pair(LagExpression.getInfix(), CMath::DelayValueData()));
+        }
+
+      assert(currentDelayData != MappedDelayData.end());
+
       CMath::DelayValueData::iterator itDelayValue = itDelayLag->second.begin();
       CMath::DelayValueData::iterator endDelayValue = itDelayLag->second.end();
+      std::string ValueKey;
+      std::string MappedValueKey;
 
       for (; itDelayValue != endDelayValue; ++itDelayValue)
         {
-          relocateObject(itDelayValue->second.second, Relocations);
+          if (itDelayValue->first != ValueKey)
+            {
+              ValueKey = itDelayValue->first;
+
+              CMathExpression ValueExpression("ValueExpression", *this);
+              ValueExpression.setInfix(itDelayValue->first);
+              ValueExpression.relocate(this, Relocations);
+              MappedValueKey = ValueExpression.getInfix();
+            }
+
+          CMathExpression DelayExpression("DelayExpression", *this);
+          DelayExpression.setInfix(itDelayValue->second.first);
+          DelayExpression.relocate(this, Relocations);
+
+          CMathObject * pDelayObject = itDelayValue->second.second;
+          relocateObject(pDelayObject, Relocations);
+
+          currentDelayData->second.insert(std::make_pair(MappedValueKey, std::make_pair(DelayExpression.getInfix(), pDelayObject)));
         }
     }
 
@@ -4600,7 +4686,8 @@ void CMathContainer::createDelays()
   CMathObject * pDelayLagObject = getMathObject(mDelayLags.array());
   std::vector< size_t >::const_iterator itLagValueCount = LagValueCounts.begin();
 
-  itDelayLag = DelayData.begin();
+  itDelayLag = MappedDelayData.begin();
+  endDelayLag = MappedDelayData.end();
   LagKey = "";
 
   for (; itDelayLag != endDelayLag; ++itDelayLag)
@@ -4647,6 +4734,7 @@ void CMathContainer::createDelays()
     }
 
   finishResize();
+  map();
 }
 
 void CMathContainer::createRelocations(const CMathContainer::sSize & size, std::vector< CMath::sRelocate > & relocations)
@@ -4780,17 +4868,7 @@ void CMathContainer::ignoreDiscontinuityEvent(CMathEvent * pEvent)
 
   Relocate.offset = 0;
 
-  size_t Keep =
-    2 * mSize.nFixed +
-    2 * mSize.nFixedEventTargets +
-    2 * mSize.nTime +
-    2 * mSize.nODE +
-    2 * mSize.nReactionSpecies +
-    2 * mSize.nAssignment +
-    2 * mSize.nIntensiveValues +
-    2 * mSize.nReactions +
-    mSize.nMoieties +
-    EventIndex;
+  size_t Keep = mInitialEventTriggers.array() - mValues.array() + EventIndex;
 
   // Keep all initial values in place before the ignored event in place.
   createRelocation(Keep, Keep, Relocate, Relocations);
@@ -4805,6 +4883,7 @@ void CMathContainer::ignoreDiscontinuityEvent(CMathEvent * pEvent)
   UnusedObjects.insert(Relocate.pObjectStart - 1);
 
   // Keep all values in place before the ignored event in place.
+  Keep = mEventTriggers.array() - mExtensiveValues.array() + EventIndex;
   createRelocation(Keep, Keep, Relocate, Relocations);
   // Skip the ignored event trigger
   createRelocation(0, 1, Relocate, Relocations);
@@ -4817,12 +4896,7 @@ void CMathContainer::ignoreDiscontinuityEvent(CMathEvent * pEvent)
   UnusedObjects.insert(Relocate.pObjectStart - 1);
 
   // Keep noise related values and event delays before the ignored event.
-  Keep =
-    mSize.nODE +
-    2 * mSize.nODESpecies +
-    2 * mSize.nReactionSpecies +
-    2 * mSize.nReactions +
-    EventIndex;
+  Keep = mEventDelays.array() - mExtensiveNoise.array() + EventIndex;
 
   // Event Delays
   createRelocation(Keep, Keep, Relocate, Relocations);
@@ -4911,6 +4985,10 @@ std::vector< CMath::sRelocate > CMathContainer::resize(CMathContainer::sSize & s
     {
       return Relocations;
     }
+
+  // We must not relocate mDataObject2MathObject and mDataValue2MathObject as the key might have been deleted and newly allocated.
+  mDataObject2MathObject.clear();
+  mDataValue2MathObject.clear();
 
   // Determine the offsets
   // We have to cast all pointers to size_t to avoid pointer overflow.

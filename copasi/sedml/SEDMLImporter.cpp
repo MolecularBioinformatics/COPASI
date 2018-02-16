@@ -84,10 +84,19 @@ C_FLOAT64 SEDMLImporter::round(const C_FLOAT64 & x)
 }
 
 void SEDMLImporter::setImportHandler(CProcessReport* pHandler)
-{mpImportHandler = pHandler;}
+{
+  mpImportHandler = pHandler;
+}
 
-CProcessReport* SEDMLImporter::getImportHandlerAddr()
-{return mpImportHandler;}
+CProcessReport* SEDMLImporter::getImportHandlerAddr() const
+{
+  return mpImportHandler;
+}
+
+void SEDMLImporter::clearCallBack()
+{
+  setImportHandler(NULL);
+}
 
 const std::string SEDMLImporter::getArchiveFileName()
 {return mArchiveFileName;}
@@ -837,11 +846,11 @@ CModel* SEDMLImporter::importFirstSBMLModel(CProcessReport* pImportHandler,
 
   if (iiMax > 1)
     {
-      CCopasiMessage(CCopasiMessage::WARNING, "COAPSI currently only supports the import of SED-ML models, that involve one model only. Only the simulations for the first model will be imported");
+      CCopasiMessage(CCopasiMessage::WARNING, "COPASI currently only supports the import of SED-ML models, that involve one model only. Only the simulations for the first model will be imported");
     }
 
-  std::string modelSource = ""; //must be taken from SEDML document.
-  std::string modelId = ""; // to ensure only one model is imported since only one model in SEDML file is supported
+  std::string modelSource; //must be taken from SEDML document.
+  std::string modelId; // to ensure only one model is imported since only one model in SEDML file is supported
   SedModel* sedmlModel = NULL;
 
   for (ii = 0; ii < iiMax; ++ii)

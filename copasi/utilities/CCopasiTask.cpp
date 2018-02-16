@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -224,6 +224,11 @@ CProcessReport * CCopasiTask::getCallBack() const
   return mpCallBack;
 }
 
+void CCopasiTask::clearCallBack()
+{
+  setCallBack(NULL);
+}
+
 COutputHandler* CCopasiTask::getOutputHandler() const
 {
   return mpOutputHandler;
@@ -306,6 +311,11 @@ bool CCopasiTask::restore()
 
   if (mpContainer != NULL)
     {
+      // Update all transient values known to COPASI
+      mpContainer->updateSimulatedValues(false);
+      mpContainer->updateTransientDataValues();
+      mpContainer->pushAllTransientValues();
+
       if (mUpdateModel &&
           mpContainer->isStateValid())
         {

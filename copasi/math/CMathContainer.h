@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -822,6 +822,11 @@ public:
   CRandom & getRandomGenerator() const;
 
   /**
+   * Retrieve the object which triggers recalculation of random functions
+   */
+  const CDataObject * getRandomObject() const;
+
+  /**
    * Compile the mathematical model
    */
   void compile();
@@ -890,7 +895,7 @@ private:
    * @param sPointers & pointers
    */
   void printPointers(CMath::sPointers & pointers);
-#endif // COAPSI_DEBUG
+#endif // COPASI_DEBUG
 
   /**
    * Initialize the pointers used for the conversion of
@@ -961,6 +966,11 @@ private:
    * @param CMatrix< C_FLOAT64 > & jacobian
    */
   void calculateRootJacobian(CMatrix< C_FLOAT64 > & jacobian);
+
+  /**
+   * Remove data objects which have a representation in the math container
+   */
+  void sanitizeDataValue2DataObject();
 
   /**
    * Create the update sequences needed to synchronize the initial values
@@ -1034,6 +1044,11 @@ private:
 
   /**
    * Map the data object to the math object
+   */
+  void map();
+
+  /**
+   * Map the data object to the math object
    * @param CDataObject * pDataObject
    * @param CMathObject * pMathObject
    */
@@ -1086,6 +1101,7 @@ private:
   CModel * mpModel;
   const CDataObject * mpAvogadro;
   const CDataObject * mpQuantity2NumberFactor;
+  CDataObjectReference< C_FLOAT64 > mRandom;
 
   CMathEventQueue * mpProcessQueue;
   CRandom * mpRandomGenerator;

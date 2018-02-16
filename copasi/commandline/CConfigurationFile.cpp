@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -131,7 +131,9 @@ CConfigurationFile::CConfigurationFile(const std::string & name,
   mpCurrentAuthorGivenName(NULL),
   mpCurrentAuthorFamilyName(NULL),
   mpCurrentAuthorOrganization(NULL),
-  mpCurrentAuthorEmail(NULL)
+  mpCurrentAuthorEmail(NULL),
+  mpPrecision(NULL)
+
 {initializeParameter();}
 
 CConfigurationFile::CConfigurationFile(const CConfigurationFile & src,
@@ -159,7 +161,8 @@ CConfigurationFile::CConfigurationFile(const CConfigurationFile & src,
   mpCurrentAuthorGivenName(NULL),
   mpCurrentAuthorFamilyName(NULL),
   mpCurrentAuthorOrganization(NULL),
-  mpCurrentAuthorEmail(NULL)
+  mpCurrentAuthorEmail(NULL),
+  mpPrecision(NULL)
 {initializeParameter();}
 
 CConfigurationFile::~CConfigurationFile()
@@ -204,6 +207,7 @@ void CConfigurationFile::initializeParameter()
   mpNormalizePerExperiment = assertParameter("Normalize Weights per Experiment", CCopasiParameter::BOOL, true);
   mpEnableAdditionalOptimizationParameters = assertParameter("Enable additional optimization parameters", CCopasiParameter::BOOL, false);
   mpDisplayPopulations = assertParameter("Display Populations during Optimization", CCopasiParameter::BOOL, false);
+  mpPrecision = assertParameter("Double Precision for String Conversion", CCopasiParameter::INT, 10);
 
   mpApplicationFont = assertParameter("Application Font", CCopasiParameter::STRING, std::string(""));
   getParameter("Application Font")->setUserInterfaceFlag(~CCopasiParameter::UserInterfaceFlag(CCopasiParameter::editable));
@@ -594,7 +598,7 @@ const CCopasiParameterGroup & CConfigurationFile::CXML::getConfiguration() const
 {return mConfiguration;}
 
 // set and get for the current author added by Peyman
-const std::string CConfigurationFile::getCurrentAuthorGivenName() const
+const std::string & CConfigurationFile::getCurrentAuthorGivenName() const
 {
   return *mpCurrentAuthorGivenName;
 }
@@ -602,7 +606,7 @@ void CConfigurationFile::setCurrentAuthorGivenName(const std::string & CurrentAu
 {
   *mpCurrentAuthorGivenName = CurrentAuthorGivenName;
 }
-const std::string CConfigurationFile::getCurrentAuthorFamilyName() const
+const std::string & CConfigurationFile::getCurrentAuthorFamilyName() const
 {
   return *mpCurrentAuthorFamilyName;
 }
@@ -610,7 +614,7 @@ void CConfigurationFile::setCurrentAuthorFamilyName(const std::string & CurrentA
 {
   *mpCurrentAuthorFamilyName = CurrentAuthorFamilyName;
 }
-const std::string CConfigurationFile::getCurrentAuthorOrganization() const
+const std::string & CConfigurationFile::getCurrentAuthorOrganization() const
 {
   return *mpCurrentAuthorOrganization;
 }
@@ -618,11 +622,21 @@ void CConfigurationFile::setCurrentAuthorOrganization(const std::string & Curren
 {
   *mpCurrentAuthorOrganization = CurrentAuthorOrganization;
 }
-const std::string CConfigurationFile::getCurrentAuthorEmail() const
+const std::string & CConfigurationFile::getCurrentAuthorEmail() const
 {
   return *mpCurrentAuthorEmail;
 }
 void CConfigurationFile::setCurrentAuthorEmail(const std::string & CurrentAuthorEmail)
 {
   *mpCurrentAuthorEmail = CurrentAuthorEmail;
+}
+
+C_INT32 CConfigurationFile::getDoublePrecision() const
+{
+  return *mpPrecision;
+}
+
+void CConfigurationFile::setDoublePrecision(C_INT32 precision)
+{
+  *mpPrecision = precision;
 }

@@ -364,7 +364,7 @@ bool CQParameterGroupDM::isTopLevelGroup(CCopasiParameter * pNode) const
   QVector< CCopasiParameterGroup * >::const_iterator end = mTopLevelGroups.constEnd();
 
   for (; it != end; ++it)
-    if (*it == static_cast< CCopasiParameterGroup * >(pNode)) return true;
+    if (*it == pNode) return true;
 
   return false;
 }
@@ -466,7 +466,7 @@ QVariant CQParameterGroupDM::valueData(const CCopasiParameter * pNode, int role)
           {
             case CCopasiParameter::DOUBLE:
             case CCopasiParameter::UDOUBLE:
-              return QVariant(QString::number(pNode->getValue< C_FLOAT64 >(), 'g', 10));
+              return QVariant(convertToQString(pNode->getValue< C_FLOAT64 >()));
               break;
 
             case CCopasiParameter::INT:

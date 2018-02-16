@@ -212,7 +212,7 @@ if (MSVC OR USING_INTEL)
 endif(MSVC OR USING_INTEL)
 endif(WIN32)
 
-add_library(binding_r_lib SHARED copasi_wrapper.cpp)
+add_library(binding_r_lib SHARED copasi_wrapper.cpp ${CMAKE_CURRENT_SOURCE_DIR}/RProcessCallback.cpp)
 add_dependencies( binding_r_lib binding_r_swig) 
 
 set_target_properties (binding_r_lib PROPERTIES OUTPUT_NAME "COPASI")
@@ -273,7 +273,12 @@ configure_file (
   "${CMAKE_CURRENT_BINARY_DIR}/COPASI/NAMESPACE"
 )
 
-get_target_property(LIBSBML_R_NATIVELIB binding_r_lib LOCATION)
+set(LIBSBML_R_NATIVELIB)
+if (${CMAKE_VERSION} VERSION_LESS 3.0.1)
+  get_target_property(LIBSBML_R_NATIVELIB binding_r_lib LOCATION)
+else()
+  set(LIBSBML_R_NATIVELIB $<TARGET_FILE:binding_r_lib>)
+endif()
 
 if (APPLE AND ENABLE_UNIVERSAL)
 

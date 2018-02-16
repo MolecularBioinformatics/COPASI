@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -1152,7 +1152,7 @@ void CQFittingItemWidget::setTableText(const int &row, const COptItem *pItem)
 
   if (mItemType == OPT_ITEM || mItemType == FIT_ITEM)
     {
-      Item += "; Start Value = " + QString::number(pItem->getStartValue());
+      Item += "; Start Value = " + convertToQString(pItem->getStartValue());
     }
 
   QTableWidgetItem *itemValue = new QTableWidgetItem(Item);
@@ -1197,10 +1197,10 @@ void CQFittingItemWidget::loadSelection()
   if (it == end)
     {
       mpEditObject->setText("");
-      mpEditLower->setText(QString::number(1e-06));
+      mpEditLower->setText(convertToQString(1e-06));
       mpCheckLowerInf->setChecked(false);
       mpLowerObject = NULL;
-      mpEditUpper->setText(QString::number(1e+06));
+      mpEditUpper->setText(convertToQString(1e+06));
       mpCheckUpperInf->setChecked(false);
       mpUpperObject = NULL;
       mpEditStart->setText("");
@@ -1262,7 +1262,7 @@ void CQFittingItemWidget::loadSelection()
 
       mpEditUpper->setText(Value);
       mpCheckUpperInf->setChecked(Value == "inf");
-      mpEditStart->setText(QString::number(pItem->getStartValue()));
+      mpEditStart->setText(convertToQString(pItem->getStartValue()));
       std::string Experiments;
       std::string CrossValidations;
 
@@ -1349,7 +1349,7 @@ void CQFittingItemWidget::loadSelection()
               mpCheckUpperInf->setChecked(false);
             }
 
-          if (QString::number(pItem->getStartValue()) != mpEditStart->text())
+          if (convertToQString(pItem->getStartValue()) != mpEditStart->text())
             mpEditStart->setText("");
 
           if ((mItemType == FIT_ITEM || mItemType == FIT_CONSTRAINT) &&
@@ -1533,7 +1533,7 @@ void CQFittingItemWidget::slotReset()
         for (; it != end; ++it)
           {
             (*mpItemsCopy)[*it]->setStartValue(std::numeric_limits<C_FLOAT64>::quiet_NaN());
-            mpEditStart->setText(QString::number((*mpItemsCopy)[*it]->getStartValue()));
+            mpEditStart->setText(convertToQString((*mpItemsCopy)[*it]->getStartValue()));
             setTableText((int) *it, (*mpItemsCopy)[*it]);
           }
 
@@ -1546,7 +1546,7 @@ void CQFittingItemWidget::slotReset()
         for (; it != end; ++it)
           {
             (*mpItemsCopy)[*it]->setStartValue((*mpItemsCopy)[*it]->getRandomValue(Random));
-            mpEditStart->setText(QString::number((*mpItemsCopy)[*it]->getStartValue()));
+            mpEditStart->setText(convertToQString((*mpItemsCopy)[*it]->getStartValue()));
             setTableText((int) *it, (*mpItemsCopy)[*it]);
           }
       }
@@ -1561,7 +1561,7 @@ void CQFittingItemWidget::slotReset()
           for (; it != end; ++it)
             {
               (*mpItemsCopy)[*it]->setStartValue(Solution[*it]);
-              mpEditStart->setText(QString::number((*mpItemsCopy)[*it]->getStartValue()));
+              mpEditStart->setText(convertToQString((*mpItemsCopy)[*it]->getStartValue()));
               setTableText((int) *it, (*mpItemsCopy)[*it]);
             }
       }

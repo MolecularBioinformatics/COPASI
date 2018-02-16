@@ -47,8 +47,8 @@
 %ignore CCopasiTask::TypeName;
 %ignore CCopasiTask::ValidMethods;
 %ignore CCopasiTask::process(bool const &);
-%ignore CCopasiTask::getCallBack;
-%ignore CCopasiTask::setCallBack;
+//%ignore CCopasiTask::getCallBack;
+//%ignore CCopasiTask::setCallBack;
 %ignore CCopasiTask::isValidMethod;
 %ignore CCopasiTask::initialize(const OutputFlag & of,
                           COutputHandler * pOutputHandler,
@@ -309,6 +309,12 @@
 
         pDataModel->finish();
         
+        if (self->getMathContainer() != NULL)
+        {
+           self->getMathContainer()->updateTransientDataValues();
+           self->getMathContainer()->pushAllTransientValues();
+        }
+        
         return success;
       }  
      
@@ -407,6 +413,13 @@
         CCopasiMessage::clearDeque();
 
         pDataModel->finish();
+        
+        if (self->getMathContainer() != NULL)
+        {
+           self->getMathContainer()->updateTransientDataValues();
+           self->getMathContainer()->pushAllTransientValues();
+        }
+        
         
         return success;
       }

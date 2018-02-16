@@ -132,8 +132,7 @@ protected:
   bool mAvogadroSet;
   std::map<std::string, std::string> mKnownCustomUserDefinedFunctions;
   std::map<std::string, std::string> mKnownInitalValues;
-  std::map<const UnitDefinition*, std::string> mUnitExpressions;
-
+  
   // this map is used for storing the parameters that are used as factors that have to be applied to the multiplicities
   // of the chemical equation elements
   const CModelValue* mpModelConversionFactor;
@@ -157,6 +156,7 @@ protected:
   std::map<std::string, CCompartment*> mCompartmentMap;
   std::map<std::string, CModelValue*> mParameterFluxMap;
   std::set<const CDataObject*> mChangedObjects;
+  std::map<const UnitDefinition*, std::string> mUnitExpressions;
 
   /**
    * This utility functions adds a new step to the progress dialog (if present)
@@ -320,7 +320,7 @@ protected:
    * Returns the user defined SBML function definition that belongs to the given
    * name, or NULL if none can be found.
    */
-  const FunctionDefinition* getFunctionDefinitionForName(const std::string name,
+  const FunctionDefinition* getFunctionDefinitionForName(const std::string& name,
       const Model* model);
 
   /**
@@ -740,7 +740,21 @@ public:
    */
   void deleteCopasiModel();
 
+  /**
+   * sets a progress handler to inform about updates
+   */
   void setImportHandler(CProcessReport* pHandler);
+
+  /**
+   * @return the progress handler set
+   */
+  CProcessReport* getImportHandlerAddr() const;
+
+  /**
+   * clears the currently set progress handler
+   */
+  virtual void clearCallBack();
+
 
   /**
    * Enhanced method to identify identical SBML unit definitions.
@@ -757,8 +771,6 @@ public:
    */
   static UnitDefinition* getSBMLUnitDefinitionForId(const std::string& unitId,
       const Model* pSBMLModel);
-
-  CProcessReport* getImportHandlerAddr();
 
   /**
    * Returns the flag that determines whether COPASI MIRIAM annotation is

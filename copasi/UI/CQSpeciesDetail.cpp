@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -182,10 +182,10 @@ void CQSpeciesDetail::setFramework(int framework)
 
         mpLblValue->setText("Concentration " + ConcentrationUnits);
         mpLblRate->setText("Rate " + ConcentrationRateUnits);
-        mpEditInitialValue->setText(QString::number(mInitialConcentration, 'g', 10));
+        mpEditInitialValue->setText(convertToQString(mInitialConcentration));
         mpEditInitialValue->setReadOnly(!mpMetab->isInitialValueChangeAllowed((CCore::Framework) mFramework));
-        mpEditCurrentValue->setText(QString::number(mpMetab->getConcentration(), 'g', 10));
-        mpEditRate->setText(QString::number(mpMetab->getConcentrationRate(), 'g', 10));
+        mpEditCurrentValue->setText(convertToQString(mpMetab->getConcentration()));
+        mpEditRate->setText(convertToQString(mpMetab->getConcentrationRate()));
         break;
 
       case 1:
@@ -199,10 +199,10 @@ void CQSpeciesDetail::setFramework(int framework)
 
         mpLblValue->setText("Number " + ParticleNumberUnits);
         mpLblRate->setText("Number Rate " + ParticleNumberRateUnits);
-        mpEditInitialValue->setText(QString::number(mInitialNumber, 'g', 10));
+        mpEditInitialValue->setText(convertToQString(mInitialNumber));
         mpEditInitialValue->setReadOnly(!mpMetab->isInitialValueChangeAllowed((CCore::Framework) mFramework));
-        mpEditCurrentValue->setText(QString::number(mpMetab->getValue(), 'g', 10));
-        mpEditRate->setText(QString::number(mpMetab->getRate(), 'g', 10));
+        mpEditCurrentValue->setText(convertToQString(mpMetab->getValue()));
+        mpEditRate->setText(convertToQString(mpMetab->getRate()));
         break;
     }
 }
@@ -256,7 +256,7 @@ void CQSpeciesDetail::load()
   // Initial Number handled in slotTypeChanged
   mInitialNumber = mpMetab->getInitialValue();
   // Transition Time
-  mpEditTransitionTime->setText(QString::number(mpMetab->getTransitionTime(), 'g', 10));
+  mpEditTransitionTime->setText(convertToQString(mpMetab->getTransitionTime()));
   // Expression
   mpExpressionEMW->mpExpressionWidget->setExpression(mpMetab->getExpression());
   mpExpressionEMW->updateWidget();
@@ -613,10 +613,15 @@ void CQSpeciesDetail::slotCompartmentChanged(int compartment)
   if (pNewCompartment == mpCurrentCompartment ||
       pNewCompartment == NULL) return;
 
-  mInitialNumber *= pNewCompartment->getInitialValue() / mpCurrentCompartment->getInitialValue();
+  switch (mFramework)
+    {
+      case 0:
+        mInitialNumber = mInitialConcentration * pNewCompartment->getInitialValue();
+        break;
 
-  if (mFramework == 1)
-    mpEditInitialValue->setText(QString::number(mInitialNumber, 'g', 10));
+      case 1:
+        mInitialConcentration = mInitialNumber / pNewCompartment->getInitialValue();
+    }
 
   mpCurrentCompartment = pNewCompartment;
   // Update the units and values accordingly
@@ -920,7 +925,7 @@ void CQSpeciesDetail::speciesInitialValueLostFocus()
   switch (mFramework)
     {
       case 0:
-        if (QString::number(mInitialConcentration, 'g', 10) == mpEditInitialValue->text())
+        if (convertToQString(mInitialConcentration) == mpEditInitialValue->text())
           return;
 
         mInitialConcentration = mpEditInitialValue->text().toDouble();
@@ -930,7 +935,7 @@ void CQSpeciesDetail::speciesInitialValueLostFocus()
         break;
 
       case 1:
-        if (QString::number(mInitialNumber, 'g', 10) == mpEditInitialValue->text())
+        if (convertToQString(mInitialNumber) == mpEditInitialValue->text())
           return;
 
         mInitialNumber = mpEditInitialValue->text().toDouble();
@@ -960,13 +965,13 @@ void CQSpeciesDetail::speciesInitialValueLostFocus(UndoSpeciesData *pSData)
       case 0:
         mInitialConcentration = pSData->getIConc();
         pSData->setIConc(mpEditInitialValue->text().toDouble());
-        mpEditInitialValue->setText(QString::number(mInitialConcentration, 'g', 10));
+        mpEditInitialValue->setText(convertToQString(mInitialConcentration));
         break;
 
       case 1:
         mInitialNumber = pSData->getINumber();
         pSData->setINumber(mpEditInitialValue->text().toDouble());
-        mpEditInitialValue->setText(QString::number(mInitialNumber, 'g', 10));
+        mpEditInitialValue->setText(convertToQString(mInitialNumber));
         break;
     }
 }
@@ -995,28 +1000,37 @@ bool CQSpeciesDetail::changeValue(
     {
       case CCopasiUndoCommand::SPECIES_COMPARTMENT_CHANGE:
       {
-        QString Compartment = newValue.toString();
-        std::string CompartmentToRemove = mpMetab->getCompartment()->getObjectName();
+        const CCompartment * pCompartment = mpMetab->getCompartment();
+        CCompartment & NewCompartment = pModel->getCompartments()[TO_UTF8(newValue.toString())];
 
-        if (!pModel->getCompartments()[TO_UTF8(Compartment)].addMetabolite(mpMetab))
+        if (!NewCompartment.addMetabolite(mpMetab))
           {
             QString msg;
             msg = "Unable to move species '" + FROM_UTF8(mpMetab->getObjectName()) + "'\n"
-                  + "from compartment '" + FROM_UTF8(CompartmentToRemove) + "' to compartment '" + Compartment + "'\n"
+                  + "from compartment '" + FROM_UTF8(pCompartment->getObjectName()) + "' to compartment '" + newValue.toString() + "'\n"
                   + "since a species with that name already exist in the target compartment.";
             CQMessageBox::information(this,
                                       "Unable to move Species",
                                       msg,
                                       QMessageBox::Ok, QMessageBox::Ok);
             // Revert the changes
-            mpComboBoxCompartment->setCurrentIndex(mpComboBoxCompartment->findText(FROM_UTF8(CompartmentToRemove)));
+            mpComboBoxCompartment->setCurrentIndex(mpComboBoxCompartment->findText(FROM_UTF8(pCompartment->getObjectName())));
             slotCompartmentChanged(mpComboBoxCompartment->currentIndex());
           }
         else
           {
-            pModel->getCompartments()[CompartmentToRemove].getMetabolites().remove(mpMetab->getObjectName());
+            const_cast< CCompartment * >(pCompartment)->getMetabolites().remove(mpMetab->getObjectName());
             pModel->setCompileFlag();
             pModel->initializeMetabolites();
+
+            // We need to update the initial value if the framework is concentration
+            if (mFramework == 0)
+              {
+                C_FLOAT64 Factor = NewCompartment.getInitialValue() / pCompartment->getInitialValue();
+                mpMetab->setInitialValue(Factor * mpMetab->getInitialValue());
+                mpMetab->setValue(Factor * mpMetab->getValue());
+              }
+
             protectedNotify(ListViews::COMPARTMENT, ListViews::CHANGE, "");
           }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -727,19 +727,21 @@ void CQExperimentData::slotOK()
 
   emit experimentChanged();
 
-  for (i = 0; i < mpExperimentSetCopy->getExperimentCount(); i++)
-    mpExperimentSet->addExperiment(*mpExperimentSetCopy->getExperiment(i));
+  for (i = 0; i < mpExperimentSetCopy->getExperimentCount(); ++i)
+    {
+      mpExperimentSet->addExperiment(*mpExperimentSetCopy->getExperiment(i));
+    }
 
   if (mCrossValidation)
     {
       CCrossValidationSet * pSet = static_cast< CCrossValidationSet * >(mpExperimentSet);
 
-      if (QString::number(pSet->getWeight()) != mpEditWeight->text())
+      if (convertToQString(pSet->getWeight()) != mpEditWeight->text())
         {
           pSet->setWeight(mpEditWeight->text().toDouble());
         }
 
-      if (QString::number(pSet->getThreshold()) != mpEditThreshold->text())
+      if (convertToQString(pSet->getThreshold()) != mpEditThreshold->text())
         {
           pSet->setThreshold(mpEditThreshold->text().toUInt());
         }
@@ -764,8 +766,8 @@ bool CQExperimentData::load(CExperimentSet * pExperimentSet, CDataModel * pDataM
       mpEditThreshold->show();
       mpLineCrossValidation->show();
 
-      mpEditWeight->setText(QString::number(static_cast< CCrossValidationSet * >(pExperimentSet)->getWeight()));
-      mpEditThreshold->setText(QString::number(static_cast< CCrossValidationSet * >(pExperimentSet)->getThreshold()));
+      mpEditWeight->setText(convertToQString(static_cast< CCrossValidationSet * >(pExperimentSet)->getWeight()));
+      mpEditThreshold->setText(convertToQString(static_cast< CCrossValidationSet * >(pExperimentSet)->getThreshold()));
     }
   else
     {
@@ -1305,11 +1307,15 @@ void CQExperimentData::loadTable(CExperiment * pExperiment, const bool & guess)
           pObject = CObjectInterface::DataObject(mpDataModel->getObjectFromCN(ObjectMap.getObjectCN(i)));
 
           if (pObject)
-            mpTable->item((int) i, COL_OBJECT)->setText(FROM_UTF8(pObject->getObjectDisplayName()));
+            {
+              mpTable->item((int)i, COL_OBJECT)->setText(FROM_UTF8(pObject->getObjectDisplayName()));
+              mpTable->item((int)i, COL_OBJECT_HIDDEN)->setText(FROM_UTF8(ObjectMap.getObjectCN(i)));
+            }
           else
-            mpTable->item((int) i, COL_OBJECT)->setText("not found");
-
-          mpTable->item((int) i, COL_OBJECT_HIDDEN)->setText(FROM_UTF8(ObjectMap.getObjectCN(i)));
+            {
+              mpTable->item((int)i, COL_OBJECT)->setText("");
+              mpTable->item((int)i, COL_OBJECT_HIDDEN)->setText("");
+            }
         }
       else
         {
@@ -1335,9 +1341,9 @@ void CQExperimentData::loadTable(CExperiment * pExperiment, const bool & guess)
 
           if ((isnan(DefaultScale) && isnan(Scale)) ||
               DefaultScale == Scale)
-            ScaleText = "(" + QString::number(DefaultScale) + ")";
+            ScaleText = "(" + convertToQString(DefaultScale) + ")";
           else
-            ScaleText = QString::number(Scale);
+            ScaleText = convertToQString(Scale);
 
           pItem->setText(ScaleText);
           pItem->setFlags(pItem->flags() & ~FlagMask);
@@ -1481,7 +1487,7 @@ void CQExperimentData::updateScales()
 
               C_FLOAT64 DefaultWeight = ObjectMap.getDefaultScale(i);
 
-              ScaleText = "(" + QString::number(DefaultWeight) + ")";
+              ScaleText = "(" + convertToQString(DefaultWeight) + ")";
               pItem->setText(ScaleText);
             }
 
@@ -1540,11 +1546,11 @@ bool CQExperimentData::saveTable(CExperiment * pExperiment)
 
       // Empty fields are treated as default.
       if (ScaleText == "")
-        ScaleText = QString::number(std::numeric_limits<C_FLOAT64>::quiet_NaN());
+        ScaleText = convertToQString(std::numeric_limits<C_FLOAT64>::quiet_NaN());
 
       if (Type == CExperiment::dependent &&
           ScaleText[0] != '(' &&
-          QString::number(ObjectMap.getScale(i)) != ScaleText)
+          convertToQString(ObjectMap.getScale(i)) != ScaleText)
         {
           ObjectMap.setScale(i, ScaleText.toDouble());
           Changed = true;

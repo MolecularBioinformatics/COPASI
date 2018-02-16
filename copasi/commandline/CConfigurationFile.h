@@ -1,4 +1,4 @@
-// Copyright (C) 2017 by Pedro Mendes, Virginia Tech Intellectual
+// Copyright (C) 2017 - 2018 by Pedro Mendes, Virginia Tech Intellectual
 // Properties, Inc., University of Heidelberg, and University of
 // of Connecticut School of Medicine.
 // All rights reserved.
@@ -238,7 +238,6 @@ public:
    */
   void setNormalizePerExperiment(bool flag);
 
-
   /**
    * @return a flag on whether to enable additional parameters in optimization methods
    */
@@ -319,7 +318,7 @@ public:
      * Retrieve the Current Author GivenName
      * @return const std::string & CurrentAuthorGivenName
      */
-  const std::string getCurrentAuthorGivenName() const;
+  const std::string & getCurrentAuthorGivenName() const;
 
   /**
    * Set the Current Author Given Name.
@@ -330,7 +329,7 @@ public:
    * Retrieve the Current Author Familyname
    * @return const std::string & CurrentAuthorFamilyName
    */
-  const std::string getCurrentAuthorFamilyName() const;
+  const std::string & getCurrentAuthorFamilyName() const;
   /**
    * Set the Current Author  Familyname.
    * @param const std::string & CurrentAuthorFamilyName
@@ -340,7 +339,7 @@ public:
    * Retrieve the Current Author Organization
    * @return const std::string & CurrentAuthorOrganization
    */
-  const std::string getCurrentAuthorOrganization() const;
+  const std::string & getCurrentAuthorOrganization() const;
 
   /**
    * Set the Current Author Organization.
@@ -351,13 +350,24 @@ public:
    * Retrieve the Current Author Email
    * @return const std::string & CurrentAuthorEmail
    */
-  const std::string getCurrentAuthorEmail() const;
+  const std::string & getCurrentAuthorEmail() const;
 
   /**
    * Set the Current Author Email.
    * @param const std::string & CurrentAuthorEmail
    */
   void setCurrentAuthorEmail(const std::string & CurrentAuthorEmail);
+
+  /**
+   * @return the double precision to be used when converting to string
+   */
+  C_INT32 getDoublePrecision() const;
+
+  /**
+   * sets the double precision to be used when converting numbers to
+   * string
+   */
+  void setDoublePrecision(C_INT32 precision);
 
 private:
   /**
@@ -540,6 +550,12 @@ private:
    * A pointer to the Email of the current author.
    */
   std::string * mpCurrentAuthorEmail;
+
+  /**
+   * a pointer to the double precision requested when converting numbers
+   * to string
+   */
+  C_INT32* mpPrecision;
 };
 
 #endif // COPASI_CConfigurationFile
