@@ -512,6 +512,7 @@ std::set< const CDataObject * > CModelExpansion::copyCompleteModel(const CModel*
 
 bool CModelExpansion::duplicate(const SetOfModelElements & source, const std::string & index, ElementsMap & emap)
 {
+  std::string paraIndex = "{" + index + "}"; // Index in parantheses for nicer labelling
   std::set<const CCompartment*>::const_iterator itComp;
 
   for (itComp = source.mCompartments.begin(); itComp != source.mCompartments.end(); ++itComp)
@@ -530,21 +531,21 @@ bool CModelExpansion::duplicate(const SetOfModelElements & source, const std::st
 
   for (itReac = source.mReactions.begin(); itReac != source.mReactions.end(); ++itReac)
     {
-      duplicateReaction(*itReac, index, source, emap);
+      duplicateReaction(*itReac, paraIndex, source, emap);
     }
 
   std::set<const CModelValue*>::const_iterator itME;
 
   for (itME = source.mGlobalQuantities.begin(); itME != source.mGlobalQuantities.end(); ++itME)
     {
-      duplicateGlobalQuantity(*itME, index, source, emap);
+      duplicateGlobalQuantity(*itME, paraIndex, source, emap);
     }
 
   std::set<const CEvent*>::const_iterator itEvent;
 
   for (itEvent = source.mEvents.begin(); itEvent != source.mEvents.end(); ++itEvent)
     {
-      duplicateEvent(const_cast<CEvent*>(*itEvent), index, source, emap);
+      duplicateEvent(const_cast<CEvent*>(*itEvent), paraIndex, source, emap);
       //the event can be changed. Potentially it is not duplicated in its entirety but only some event assignments are duplicated.
     }
 
@@ -560,14 +561,18 @@ void CModelExpansion::duplicateCompartment(const CCompartment* source, const std
 
   //try creating the object until we find a name that is not yet used
   CCompartment* newObj;
-  std::ostringstream infix;
+  std::string infix;
+  int i = 0;
 
   do
     {
       std::ostringstream name;
-      name << source->getObjectName() << infix.str() << index;
+      /* name << source->getObjectName() << infix.str() << index; */
+      name << index << infix;
       newObj = mpModel->createCompartment(name.str(), source->getInitialValue());
-      infix << "_";
+      /* infix << "_"; */
+      infix = "_" + std::to_string(i);
+      i++;
     }
   while (!newObj);
 

@@ -151,34 +151,30 @@ void CQExpandModelData::slotOK()
   multx = mpLineEditSizeX->text().toInt();
   multy = mpLineEditSizeY->text().toInt();
 
-  std::vector< std::string > vecCompartmentLabel;
-  if (mpRadioButtonMan->isChecked())
-  {
-    QString mpTextContentCompartmentLabels = mpTextEditCompartmentLabels->toPlainText();
-    QStringList listCompartmentLabels = mpTextContentCompartmentLabels.split("\n");
-    for (int i = 0; i < listCompartmentLabels.size(); ++i)
-      vecCompartmentLabel.push_back(listCompartmentLabels[i].toUtf8().constData());
-
-    // Check if correct number of arguments was given and display message box if not
-    if (vecCompartmentLabel.size() != multx)
-    {
-      QMessageBox *msgBox = new QMessageBox;
-      msgBox->setParent(0);
-      msgBox->setWindowTitle("Incorrect number of compartment labels");
-      msgBox->setText("Please check that the number of labels equals the number of new comparments. Also note that each label should be on a single line without empty lines.");
-      msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
-      msgBox->raise();
-      reject();
-    }
-  }
-  else
-  {
-    for (int i = 0; i < multx; i++)
-      vecCompartmentLabel.push_back(std::to_string(i));
-  }
-
   if (mpRadioButtonLin->isChecked())
+  {
+    std::vector< std::string > vecCompartmentLabel;
+    if (mpRadioButtonMan->isChecked())
+    {
+      QString mpTextContentCompartmentLabels = mpTextEditCompartmentLabels->toPlainText();
+      QStringList listCompartmentLabels = mpTextContentCompartmentLabels.split("\n");
+      /* for (int i = 0; i < listCompartmentLabels.size(); ++i) */
+      for (int i = 0; i < multx; i++)
+      {
+	if (!listCompartmentLabels[i].isEmpty())
+	  vecCompartmentLabel.push_back(listCompartmentLabels[i].toUtf8().constData());
+	else 
+	  vecCompartmentLabel.push_back(std::to_string(i));
+      }
+    }
+    else
+    {
+      for (int i = 0; i < multx; i++)
+	vecCompartmentLabel.push_back(std::to_string(i));
+    }
+
     me.createLinearArray(modelelements, multx, metabkeys, vecCompartmentLabel);
+  }
   else if (mpRadioButtonRec->isChecked())
     me.createRectangularArray(modelelements, multx, multy, metabkeys);
 
@@ -200,10 +196,7 @@ void CQExpandModelData::slotMode()
       mpLineEditSizeY->setEnabled(false);
       mpRadioButtonAuto->setEnabled(true);
       mpRadioButtonMan->setEnabled(true);
-      /* if (mpRadioButtonMan->isChecked()) */
-	mpTextEditCompartmentLabels->setEnabled(true);
-      /* else */
-	/* mpTextEditCompartmentLabels->setEnabled(false); */
+      mpTextEditCompartmentLabels->setEnabled(true);
     }
   else if (mpRadioButtonRec->isChecked())
     {
